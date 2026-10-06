@@ -81,7 +81,6 @@ agregar_microdados <- \(dataset = c("pessoas", "domicilios", "familias"),
                    pessoas = censobr::read_population,
                    domicilios = censobr::read_households,
                    familias = censobr::read_families)
-  dados <- leitor(ano, showProgress = show_progress)
 
   colunas <- c(chave, variaveis)
   if (funcao %in% c("soma_pond", "media_pond")) {
@@ -95,8 +94,9 @@ agregar_microdados <- \(dataset = c("pessoas", "domicilios", "familias"),
          paste(faltando, collapse = ", "))
   }
 
-  reduzido <- dados |>
-    dplyr::select(dplyr::all_of(colunas))
+  dados <- leitor(year = ano, columns = unique(colunas),
+                  showProgress = show_progress)
+  reduzido <- dados
   if (!is.null(corte)) {
     reduzido <- reduzido |>
       dplyr::filter(!!rlang::parse_expr(corte))
@@ -137,10 +137,10 @@ agregar_setores <- \(dataset = "Basico", ano = 2022, variaveis,
   .exigir_censobr()
   nivel <- match.arg(nivel)
   chave <- .chave_nivel(nivel)
-  dados <- censobr::read_tracts(ano = ano, dataset = dataset,
-                                showProgress = show_progress)
   colunas <- c(chave, variaveis)
   if (!is.null(corte)) colunas <- unique(c(colunas, all.vars(parse(text = corte))))
+  dados <- censobr::read_tracts(year = ano, dataset = dataset,
+                                showProgress = show_progress)
   faltando <- setdiff(colunas, names(dados))
   if (length(faltando)) {
     stop("censoagg: colunas ausentes em tracts/", dataset, ": ",
