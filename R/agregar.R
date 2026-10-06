@@ -52,7 +52,9 @@ censo_variaveis <- \(ano, dataset = c("microdata", "tracts"),
 #' @param funcao `"soma_pond"` (default), `"media_pond"`, `"soma"`
 #'   ou `"media"`.
 #' @param peso Coluna de peso; default resolve por dataset
-#'   (PESO_PES/PESO_DOM/PESO_FAM ou autodeteccao ^PESO).
+#'   (PESO_PES/PESO_DOM/PESO_FAM ou autodeteccao ^PESO). Os
+#'   microdados publicos de 2022 NAO incluem pesos: com eles, use
+#'   `funcao='soma'`/`'media'` ou dados controlados.
 #' @param corte Expressao de recorte (character, ex.:
 #'   `"V1005 == 1"`), opcional.
 #' @param show_progress Propagar para o censobr.
@@ -82,6 +84,9 @@ agregar_microdados <- \(dataset = c("pessoas", "domicilios", "familias"),
                    domicilios = censobr::read_households,
                    familias = censobr::read_families)
 
+  # leitura lazy (arrow): nomes via schema, sem baixar dados
+  dados <- leitor(year = ano, showProgress = show_progress)
+
   colunas <- c(chave, variaveis)
   if (funcao %in% c("soma_pond", "media_pond")) {
     peso <- .resolver_peso(dados, dataset, peso)
@@ -94,9 +99,8 @@ agregar_microdados <- \(dataset = c("pessoas", "domicilios", "familias"),
          paste(faltando, collapse = ", "))
   }
 
-  dados <- leitor(year = ano, columns = unique(colunas),
-                  showProgress = show_progress)
-  reduzido <- dados
+  reduzido <- dados |>
+    dplyr::select(dplyr::all_of(colunas))
   if (!is.null(corte)) {
     reduzido <- reduzido |>
       dplyr::filter(!!rlang::parse_expr(corte))

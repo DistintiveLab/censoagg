@@ -30,3 +30,12 @@ Primeira execução baixa os parquets para o cache do censobr.
 Microdados 2022 de acesso controlado: usar `censobr::import_microdata22()`.
 
 MIT © 2026 DistintiveLab.
+
+## Limitacao conhecida (2022 publico)
+
+O microdado publico de 2022 distribuido pelo censobr vem reduzido
+pelo IBGE: sem `code_muni`, sem codigos V... e sem pesos. Para 2022,
+use `agregar_setores()` (agregados por setor, cobertos) ou importe o
+acesso controlado (`censobr::import_microdata22()`) e agregue com
+`funcao='soma_pond'` + `peso='PESO_PES'`. Microdados de 2010 funcionam
+ponderados.

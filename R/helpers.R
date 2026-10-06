@@ -29,7 +29,10 @@
   if (!is.null(padrao) && padrao %in% names(dados)) return(padrao)
   candidata <- grep("^PESO", names(dados), value = TRUE, ignore.case = TRUE)
   if (length(candidata)) return(candidata[1])
-  stop("censoagg: coluna de peso nao encontrada (informe 'peso=')")
+  stop("censoagg: coluna de peso nao encontrada. Os microdados ",
+       "publicos de 2022 nao incluem pesos: use funcao='soma'/'media' ",
+       "ou importe o acesso controlado (censobr::import_microdata22) ",
+       "e informe 'peso=' (PESO_PES/PESO_DOM/PESO_FAM)")
 }
 
 #' Chave territorial por nivel (NULL = Brasil inteiro)
