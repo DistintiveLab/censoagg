@@ -1,7 +1,7 @@
 Package: censoagg
 Type: Package
 Title: Agregacao de microdados e agregados do Censo (censobr) para o DW beep
-Version: 0.0.0.9000
+Version: 0.0.1.9000
 Authors@R: person("DistintiveLab", role = c("aut", "cre"),
     email = "contato@distintive.com.br")
 Description: Ponte entre o pacote censobr (microdados e agregados
