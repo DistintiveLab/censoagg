@@ -1,0 +1,30 @@
+Package: censoagg
+Type: Package
+Title: Agregacao de microdados e agregados do Censo (censobr) para o DW beep
+Version: 0.0.0.9000
+Authors@R: person("DistintiveLab", role = c("aut", "cre"),
+    email = "contato@distintive.com.br")
+Description: Ponte entre o pacote censobr (microdados e agregados
+    por setor do Censo IBGE em formato Arrow) e o formato longo
+    do data warehouse beep (local, periodo, valor): agregacoes
+    por municipio, area de ponderacao, setor ou Brasil, com
+    somas e medias ponderadas pelos pesos amostrais.
+Language: pt-BR
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Roxygen: list(markdown = TRUE)
+Depends: R (>= 4.1)
+Imports:
+    dplyr,
+    tibble
+Suggests:
+    censobr,
+    arrow,
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+Config/testthat/edition: 3
+URL: https://github.com/DistintiveLab/censoagg
+BugReports: https://github.com/DistintiveLab/censoagg/issues
