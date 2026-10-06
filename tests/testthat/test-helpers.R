@@ -60,13 +60,13 @@ test_that("empacotar devolve lista long nomeada", {
   expect_identical(as.Date(out$V1$periodo[1]), as.Date("2022-12-31"))
 })
 
-test_that("censo_variaveis usa dict informado e falha explicativo sem snapshot", {
+test_that("censo_variaveis usa dict informado e snapshot gerado", {
   fake <- data.frame(variavel = "V0001", descricao = "populacao")
   expect_identical(censo_variaveis(2022, "tracts", dict = fake), fake)
-  # sem snapshot (pacote recem-clonado) e sem censobr: erro explicativo
-  if (!requireNamespace("censobr", quietly = TRUE)) {
-    expect_error(censo_variaveis(2022, "tracts"), "instale o pacote censobr")
-  } else {
-    expect_s3_class(censo_variaveis(2022, "tracts"), "data.frame")
-  }
+  out <- censo_variaveis(2022, "tracts")
+  expect_s3_class(out, "data.frame")
+  expect_true(all(c("variavel", "descricao", "dataset") %in%
+                    names(out)))
+  expect_true("V0001" %in% out$variavel[out$dataset == "Basico"])
+  expect_true(nrow(out[out$dataset == "Pessoas", ]) > 100)
 })
