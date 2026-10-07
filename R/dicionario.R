@@ -24,8 +24,13 @@ censo_variaveis <- \(ano, dataset = c("microdata", "tracts"),
   dataset <- match.arg(dataset)
   if (!is.null(dict)) return(dict)
   rda <- paste0("dict_", dataset, "_", ano)
-  if (rda %in% data(package = "censoagg")[["results"]][, "Item"]) {
-    return(get(rda, envir = asNamespace("censoagg")))
+  # data(list=...) e obrigatoria: get() no namespace nao dispara o
+  # lazy-load sem o pacote anexado (R 4.5)
+  if (requireNamespace("censoagg", quietly = TRUE) &&
+      rda %in% data(package = "censoagg")[["results"]][, "Item"]) {
+    data(list = rda, package = "censoagg", envir = environment())
+    snap <- get(rda, inherits = FALSE)
+    return(snap[!is.na(snap$variavel) & nzchar(snap$variavel), ])
   }
   .exigir_censobr()
   if (!requireNamespace("readxl", quietly = TRUE)) {
