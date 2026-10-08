@@ -1,0 +1,30 @@
+url: https://distintivelab.github.io/censoagg/
+lang: pt
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#1b6ca8"
+
+navbar:
+  structure:
+    left: [intro, reference, news]
+    right: [search, github]
+
+reference:
+  - title: Agregacao
+    desc: >
+      Leem o Censo via censobr e devolvem lista nomeada
+      variavel -> long(local, periodo, valor), pronta para o DW.
+    contents:
+      - agregar_setores
+      - agregar_microdados
+  - title: Dicionario
+    desc: Escolha de variaveis sem depender do censobr em runtime.
+    contents:
+      - censo_variaveis
+      - dict_2022
+  - title: Helpers internos
+    desc: Purezas testaveis offline, nao exportadas.
+    contents:
+      - starts_with(".")

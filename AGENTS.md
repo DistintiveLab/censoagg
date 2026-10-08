@@ -9,6 +9,7 @@ MIT DistintiveLab.
 devtools::document()   # NAMESPACE + man/ (roxygen2 markdown)
 devtools::test()       # 27 testes offline
 source("data-raw/dicionarios.R")  # snapshots data/*.rda (requer censobr)
+pkgdown::build_site()  # site local em docs/ (gitignored)
 ```
 
 ## Contratos
@@ -33,3 +34,16 @@ source("data-raw/dicionarios.R")  # snapshots data/*.rda (requer censobr)
   nova precisa de roxygen com `@param`/`@return` e de bump de
   versão no DESCRIPTION + entrada no NEWS.md.
 - Nível "brasil": chave NULL, coluna `local` = "Brasil".
+
+## Site (pkgdown)
+
+- `_pkgdown.yml` define idioma (`lang: pt`), bootstrap 5 e as seções
+  do índice de referência; ao criar função nova, inclua-a em
+  `reference:`.
+- `.github/workflows/pkgdown.yaml` publica o site na branch
+  `gh-pages` (URL <https://distintivelab.github.io/censoagg/>) a
+  cada push em `main`. `docs/` fica no `.gitignore`: o site só é
+  gerado no CI (ou localmente para conferir).
+- O pkgdown renderiza todo `.md` da raiz (`build_home_md`), então o
+  workflow roda `mv -f AGENTS.md .AGENTS.md` antes do build para
+  não publicar esta nota interna.

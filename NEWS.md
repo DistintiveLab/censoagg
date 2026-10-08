@@ -1,3 +1,16 @@
+# censoagg 0.0.1.9005
+
+- Site de documentacao publicado com pkgdown (`_pkgdown.yml`, tema
+  bootstrap 5, `lang: pt`) em <https://distintivelab.github.io/censoagg/>,
+  servido da branch `gh-pages`.
+- GitHub Actions (`.github/workflows/pkgdown.yaml`) reconstroi e
+  publica o site a cada push em `main`, pull request, release ou
+  disparo manual; o deploy cria a `gh-pages` automaticamente.
+- `AGENTS.md` e nota interna: o workflow a esconde antes do build,
+  porque o pkgdown renderiza todo `.md` da raiz do pacote.
+- `docs/` continua fora do versionamento; a URL do site entra no
+  campo `URL` do DESCRIPTION.
+
 # censoagg 0.0.1.9004
 
 - Documentacao completa: roxygen com `@param`/`@return`, secoes de

@@ -1,5 +1,7 @@
 # censoagg
 
+[![pkgdown](https://img.shields.io/badge/docs-pkgdown-1b6ca8.svg)](https://distintivelab.github.io/censoagg/)
+
 **Ponte entre o [censobr](https://ipea.github.io/censobr/) e o painel
 [beep](https://github.com/DistintiveLab/beep)**: agrega microdados da
 amostra e agregados por setor censitário do Censo IBGE (Arrow/parquet)
@@ -99,6 +101,10 @@ ponderados.
 
 ## Documentacao
 
+Site: <https://distintivelab.github.io/censoagg/> (gerado por pkgdown,
+publicado na branch `gh-pages` pelo GitHub Actions a cada push em
+`main`).
+
 As páginas em `man/` são geradas por roxygen2 (`RoxygenNote: 7.3.2`,
 markdown ligado) e versionadas junto com o código:
 
@@ -106,5 +112,6 @@ markdown ligado) e versionadas junto com o código:
 devtools::document()   # NAMESPACE + man/
 devtools::test()       # testes offline (sem rede)
 ?agregar_setores       # contrato, níveis, ponderação e exemplos
+pkgdown::build_site()  # site local em docs/ (não versionado)
 ```
 
