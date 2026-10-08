@@ -41,7 +41,7 @@
   switch(nivel,
          municipio = "code_muni",
          area_ponderacao = "code_weighting",
-         setor = "code_setor",
+         setor = "code_tract",
          brasil = NULL,
          stop("censoagg: nivel desconhecido: ", nivel))
 }

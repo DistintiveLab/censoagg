@@ -14,7 +14,7 @@ test_that("peso padrao e autodeteccao", {
 
 test_that("chave por nivel e erros", {
   expect_identical(censoagg:::.chave_nivel("municipio"), "code_muni")
-  expect_identical(censoagg:::.chave_nivel("setor"), "code_setor")
+  expect_identical(censoagg:::.chave_nivel("setor"), "code_tract")
   expect_null(censoagg:::.chave_nivel("brasil"))
   expect_error(censoagg:::.chave_nivel("rua"), "desconhecido")
 })
