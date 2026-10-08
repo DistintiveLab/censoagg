@@ -7,7 +7,7 @@ MIT DistintiveLab.
 
 ```r
 devtools::document()   # NAMESPACE + man/ (roxygen2 markdown)
-devtools::test()       # 24 testes offline
+devtools::test()       # 27 testes offline
 source("data-raw/dicionarios.R")  # snapshots data/*.rda (requer censobr)
 ```
 
@@ -26,5 +26,10 @@ source("data-raw/dicionarios.R")  # snapshots data/*.rda (requer censobr)
   de download em `.onLoad`.
 - `local` sai como character do código IBGE (7 dígitos município,
   15 dígitos setor — setor não encaixa no DW atual do beep até
-  existirem níveis submunicipais).
+  existirem níveis submunicipais). Chaves territoriais seguem o
+  censobr/geobr: `code_muni`, `code_weighting` e `code_tract`
+  (setor — **não** existe `code_setor` nos parquets).
+- `man/` é gerado por `devtools::document()` e versionado; função
+  nova precisa de roxygen com `@param`/`@return` e de bump de
+  versão no DESCRIPTION + entrada no NEWS.md.
 - Nível "brasil": chave NULL, coluna `local` = "Brasil".

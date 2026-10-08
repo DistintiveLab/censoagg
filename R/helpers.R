@@ -3,6 +3,13 @@
 #' Purezas testaveis offline: coercao numerica dos agregados do
 #' IBGE ("." e vazio significam NA/zero), escolha da coluna de
 #' peso, chave territorial e o agregador generico em memoria.
+#'
+#' Coercao dos valores textuais do IBGE para numero; `"."`, `""`,
+#' `"X"` e `"-"` viram `NA` (que as somas tratam como zero).
+#'
+#' @param x Vetor de valores lidos do parquet (character ou numerico).
+#' @return Vetor `numeric`; `NA` onde o valor nao e numerico.
+#' @seealso [.agregador()], que aplica a coercao antes de somar.
 #' @keywords internal
 .para_numerico <- \(x) {
   x <- as.character(x)
@@ -11,6 +18,11 @@
 }
 
 #' Coluna de peso padrao por dataset de microdados
+#'
+#' @param dataset `"pessoas"`, `"domicilios"` ou `"familias"`.
+#' @return Nome da coluna de peso (PESO_PES/PESO_DOM/PESO_FAM) ou
+#'   `NULL` para dataset desconhecido (a autodeteccao cuida do resto).
+#' @seealso [.resolver_peso()]
 #' @keywords internal
 .peso_padrao <- \(dataset) {
   switch(dataset,
@@ -22,6 +34,17 @@
 
 #' Resolve a coluna de peso: explicita, padrao do dataset ou
 #' autodetectada (primeira coluna ^PESO)
+#'
+#' @param dados Base (ou apenas o schema) onde procurar a coluna.
+#' @param dataset `"pessoas"`, `"domicilios"` ou `"familias"`.
+#' @param peso Coluna explicita; quando informada, vence as demais
+#'   regras.
+#' @return Nome da coluna de peso.
+#' @section Erro:
+#' Sem peso explicito, sem padrao do dataset e sem coluna `^PESO`,
+#' para com erro explicativo lembrando que os microdados publicos de
+#' 2022 nao trazem pesos (usar `soma`/`media` ou o acesso controlado).
+#' @seealso [.peso_padrao()]
 #' @keywords internal
 .resolver_peso <- \(dados, dataset, peso = NULL) {
   if (!is.null(peso)) return(peso)
@@ -36,6 +59,16 @@
 }
 
 #' Chave territorial por nivel (NULL = Brasil inteiro)
+#'
+#' Os nomes seguem o censobr/geobr: `code_muni` (7 digitos),
+#' `code_weighting` (area de ponderacao dos microdados) e
+#' `code_tract` (setor censitario, 15 digitos - a coluna se chama
+#' `code_tract` nos parquets de tracts, nao `code_setor`).
+#'
+#' @param nivel `"municipio"`, `"area_ponderacao"`, `"setor"` ou
+#'   `"brasil"`.
+#' @return Nome da coluna chave (`character`) ou `NULL` no nivel
+#'   Brasil, que agrega tudo em uma linha `"Brasil"`.
 #' @keywords internal
 .chave_nivel <- \(nivel) {
   switch(nivel,
@@ -47,6 +80,12 @@
 }
 
 #' Exige censobr instalado com mensagem clara
+#'
+#' O censobr e `Suggests`, entao o pacote carrega e o dicionario
+#' funciona offline; apenas as leituras de dados o exigem. Nenhum
+#' download acontece em `.onLoad()`.
+#'
+#' @return `NULL` invisivel quando o censobr esta instalado.
 #' @keywords internal
 .exigir_censobr <- \() {
   if (!requireNamespace("censobr", quietly = TRUE)) {
@@ -61,6 +100,20 @@
 #' Agrupa `dados` pela chave e calcula `funcao` para cada
 #' variavel. Ponderadas pre-multiplicam x pelo peso e dividem a
 #' soma dos pesos apenas nas linhas com x observado.
+#'
+#' @param dados `data.frame` ja reduzido as colunas necessarias.
+#' @param chave Coluna de agrupamento; `NULL` agrega tudo em
+#'   `"Brasil"` (cria a coluna `local`).
+#' @param variaveis Variaveis a agregar.
+#' @param funcao `"soma"`, `"media"`, `"soma_pond"` ou
+#'   `"media_pond"`; as variantes `_pond` exigem `peso`.
+#' @param peso Coluna de peso, obrigatoria nas funcoes ponderadas e
+#'   ignorada nas demais.
+#' @return `data.frame` largo com a chave e uma coluna por variavel.
+#' @section NA e ponderacao:
+#' Valores textuais passam por [.para_numerico()] (`"."`/`""` -> NA);
+#' somas usam `na.rm` (NA equivale a zero) e medias ponderadas
+#' excluem do denominador apenas as linhas com valor ausente.
 #' @keywords internal
 .agregador <- \(dados, chave, variaveis, funcao, peso = NULL) {
   funcao <- match.arg(funcao, c("soma", "media", "soma_pond", "media_pond"))

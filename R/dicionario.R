@@ -1,8 +1,8 @@
 #' Dicionario de variaveis do Censo (snapshot offline)
 #'
-#' Devolve o dicionario (variavel, descricao) para escolha no
-#' painel beep SEM depender do censobr em runtime: usa o snapshot
-#' lazy do pacote (gerado por `data-raw/dicionarios.R` a partir
+#' Devolve o dicionario para escolha de variaveis no painel beep SEM
+#' depender do censobr em runtime: usa o snapshot lazy do pacote
+#' (`data/dict_*.rda`, gerado por `data-raw/dicionarios.R` a partir
 #' dos xlsx do censobr v1.0.0); sem snapshot, tenta o censobr ao
 #' vivo (requer readxl).
 #'
@@ -11,14 +11,21 @@
 #' @param dict Snapshot opcional (data.frame com colunas
 #'   `variavel` e `descricao`; opcionalmente `dataset`) - para
 #'   testes.
-#' @return `data.frame` com variavel, descricao e `dataset`
-#'   (subbase: Basico/Pessoas/... para tracts; pessoas/
-#'   domicilios/familias para microdados).
+#' @return `data.frame` com as colunas `variavel` (codigo usado nas
+#'   demais funcoes), `descricao` (rotulo em pt-BR), `dataset`
+#'   (subbase: Basico/Pessoas/... para tracts; pessoas/domicilios/
+#'   familias para microdados) e `tema`. Linhas sem codigo ou sem
+#'   descricao sao descartadas, o que mantem o resultado alinhado as
+#'   colunas realmente presentes nos parquets.
+#' @seealso [agregar_setores()] e [agregar_microdados()], que recebem
+#'   os codigos devolvidos aqui no argumento `variaveis`.
 #' @examples
 #' \dontrun{
-#' censo_variaveis(2022, "tracts")
+#' d <- censo_variaveis(2022, "tracts")
+#' d[d$variavel == "demografia_V01007", ]
 #' }
 #' @export
+#' @importFrom utils data
 censo_variaveis <- \(ano, dataset = c("microdata", "tracts"),
                      dict = NULL) {
   dataset <- match.arg(dataset)
@@ -47,6 +54,13 @@ censo_variaveis <- \(ano, dataset = c("microdata", "tracts"),
 #' Tema, Descricao por categoria - descricoes repetidas com NA);
 #' sheets de microdados sao posicionais (col 1 = codigo, col 2 =
 #' descricao com categorias embutidas).
+#'
+#' @param path Caminho do xlsx devolvido por
+#'   `censobr::data_dictionary()`.
+#' @param dataset `"tracts"` ou `"microdata"`; define quais sheets
+#'   entram (tracts ignora `Siglas`, microdados exigem `_publico`).
+#' @return `data.frame` long (variavel, descricao, dataset, tema),
+#'   ordenado por subbase e codigo, com uma linha por variavel.
 #' @keywords internal
 .ler_dicionario_xlsx <- \(path, dataset) {
   sheets <- readxl::excel_sheets(path)
@@ -90,6 +104,11 @@ censo_variaveis <- \(ano, dataset = c("microdata", "tracts"),
 }
 
 #' Alias de sheet do xlsx para dataset do painel (microdados)
+#'
+#' @param sheet Nome da sheet do xlsx (`PESS...`, `DOMI...` ou
+#'   `FAMI...`).
+#' @return `"pessoas"`, `"domicilios"` ou `"familias"`; `NA` para
+#'   sheets fora desses prefixos.
 #' @keywords internal
 .sheet_para_dataset <- \(sheet) {
   if (grepl("^PESS", sheet)) return("pessoas")
@@ -102,6 +121,12 @@ censo_variaveis <- \(ano, dataset = c("microdata", "tracts"),
 #' para descricoes por categoria (repetidas com NA em tracts),
 #' o chamador ja mantem a primeira ocorrencia nao vazia por
 #' variavel via deduplicacao
+#'
+#' Quebras de linha viram `"; "` para que a descricao inteira caiba
+#' em uma celula do painel, sem espacos duplicados nas emendas.
+#'
+#' @param x Vetor de descricoes lido do xlsx.
+#' @return `character` do mesmo comprimento de `x`, ja aparado.
 #' @keywords internal
 .limpa_desc <- \(x) {
   x <- gsub("\r?\n\\s*", "; ", as.character(x))

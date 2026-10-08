@@ -1,3 +1,23 @@
+# censoagg 0.0.1.9004
+
+- Documentacao completa: roxygen com `@param`/`@return`, secoes de
+  ponderacao e da limitacao do microdado publico, `@seealso` e
+  `@family` em todas as funcoes; as paginas `man/` passam a ser
+  geradas por `devtools::document()` e versionadas.
+- README com o contrato de saida, a tabela de niveis territoriais e o
+  exemplo validado de homens/mulheres por setor censitario no DF;
+  AGENTS.md registra que a chave de setor e `code_tract`.
+- Removida a copia morta de `censo_variaveis()` em `R/agregar.R` (a
+  versao viva esta em `R/dicionario.R`).
+- Os snapshots `dict_tracts_2022` e `dict_microdata_2022` ganharam
+  pagina propria (`?dict_2022`, com formato e fonte), eliminando o
+  aviso de dados nao documentados.
+- Dependencias declaradas direito: `rlang` em Imports e `readxl` em
+  Suggests; `NAMESPACE` passa a ser inteiramente gerado por roxygen2
+  (com `importFrom(utils, data)`, sem imports ociosos de dplyr).
+- Empacotamento: `LICENSE` no formato reconhecido (YEAR/COPYRIGHT
+  HOLDER) e `data-raw/`, `LICENSE.md` e `.crush` fora do build.
+
 # censoagg 0.0.1.9003
 
 - Fix: `nivel = "setor"` usava a coluna `code_setor`, que nao existe

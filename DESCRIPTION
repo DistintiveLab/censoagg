@@ -1,7 +1,7 @@
 Package: censoagg
 Type: Package
 Title: Agregacao de microdados e agregados do Censo (censobr) para o DW beep
-Version: 0.0.1.9003
+Version: 0.0.1.9004
 Authors@R: person("DistintiveLab", role = c("aut", "cre"),
     email = "contato@distintive.com.br")
 Description: Ponte entre o pacote censobr (microdados e agregados
@@ -18,10 +18,12 @@ Roxygen: list(markdown = TRUE)
 Depends: R (>= 4.1)
 Imports:
     dplyr,
+    rlang,
     tibble
 Suggests:
     censobr,
     arrow,
+    readxl,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
