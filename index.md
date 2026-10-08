@@ -1,0 +1,122 @@
+# censoagg
+
+[![pkgdown](https://img.shields.io/badge/docs-pkgdown-1b6ca8.svg)](https://distintivelab.github.io/censoagg/)
+
+**Ponte entre o [censobr](https://ipea.github.io/censobr/) e o painel
+[beep](https://github.com/DistintiveLab/beep)**: agrega microdados da
+amostra e agregados por setor censitário do Censo IBGE (Arrow/parquet)
+no formato longo que o data warehouse do beep consome (`local`,
+`periodo`, `valor`) — uma série por variável.
+
+``` r
+
+remotes::install_github("DistintiveLab/censoagg")
+
+# microdados SEMPRE ponderados (domínios pequenos: usar agregados)
+censoagg::agregar_microdados("pessoas", 2022,
+  variaveis = c("V0001"), nivel = "municipio", funcao = "soma_pond")
+
+# agregados por setor -> município (contagens; "." vira NA)
+censoagg::agregar_setores("Basico", 2022,
+  variaveis = c("V0001"), nivel = "municipio")
+```
+
+- [`agregar_microdados()`](https://distintivelab.github.io/censoagg/reference/agregar_microdados.md):
+  reduz as colunas **antes** do `collect()`, recorte via expressão
+  (`corte =`), níveis município/área de ponderação/Brasil.
+- [`agregar_setores()`](https://distintivelab.github.io/censoagg/reference/agregar_setores.md):
+  níveis setor/município/Brasil (não ponderar: são contagens do
+  universo).
+- [`censo_variaveis()`](https://distintivelab.github.io/censoagg/reference/censo_variaveis.md):
+  dicionário de variáveis para o painel, com snapshot lazy
+  (`data-raw/dicionarios.R`) e fallback ao censobr.
+
+## Contrato de saída
+
+As duas funções runtime devolvem **lista nomeada** (`variável -> long`),
+pronta para o `db_datawrite` do beep:
+
+| coluna    | tipo      | conteúdo                                    |
+|-----------|-----------|---------------------------------------------|
+| `local`   | character | código IBGE (7 dígitos município, 15 setor) |
+| `periodo` | Date      | 31/12 do ano do censo                       |
+| `valor`   | numeric   | agregado; `"."`/`""`/`"X"`/`"-"` viram `NA` |
+
+No nível `"brasil"` a chave é `NULL` e `local` recebe `"Brasil"`. Somas
+usam `na.rm` (valor ausente equivale a zero); médias ponderadas excluem
+o ausente do denominador.
+
+## Níveis territoriais
+
+| nível | [`agregar_microdados()`](https://distintivelab.github.io/censoagg/reference/agregar_microdados.md) | [`agregar_setores()`](https://distintivelab.github.io/censoagg/reference/agregar_setores.md) | chave |
+|----|----|----|----|
+| município | sim | sim | `code_muni` |
+| área de ponderação | sim | não | `code_weighting` |
+| setor censitário | não | sim | `code_tract` |
+| Brasil | sim | sim | (nenhuma) |
+
+Os setores (`code_tract`, 15 dígitos, convenção do censobr/geobr) ainda
+não encaixam nos níveis do DW do beep: agregue para município ou guarde
+o código como está.
+
+## Exemplo: homens e mulheres por setor censitário no DF
+
+``` r
+
+d <- censo_variaveis(2022, "tracts")
+d[d$variavel %in% c("demografia_V01007", "demografia_V01008"),
+  c("variavel", "descricao")]
+#          variavel      descricao
+#  demografia_V01007 Sexo masculino
+#  demografia_V01008  Sexo feminino
+
+res <- agregar_setores("Pessoas", 2022,
+  variaveis = c("demografia_V01007", "demografia_V01008"),
+  nivel = "setor", corte = "code_muni == 5300108")  # 5300108 = DF
+
+head(merge(res$demografia_V01007, res$demografia_V01008,
+           by = c("local", "periodo"),
+           suffixes = c("_homens", "_mulheres")))
+#            local    periodo valor_homens valor_mulheres
+# 530010805060005 2022-12-31           64             68
+# 530010805060006 2022-12-31          326            311
+# 5.342 setores; 1.326.750 homens + 1.473.382 mulheres
+```
+
+O Censo não tem “seção eleitoral”: a unidade mais fina é o setor
+censitário. A soma por sexo fica abaixo do total oficial do DF
+(2.817.381) porque 78 setores vêm com valor `"."` nessas variáveis; para
+o total de residentes por setor use `Basico` + `V0001`, que soma exato.
+
+Primeira execução baixa os parquets para o cache do censobr. Microdados
+2022 de acesso controlado: usar
+[`censobr::import_microdata22()`](https://ipea.github.io/censobr/reference/import_microdata22.html).
+
+MIT © 2026 DistintiveLab.
+
+## Limitacao conhecida (2022 publico)
+
+O microdado publico de 2022 distribuido pelo censobr vem reduzido pelo
+IBGE: sem `code_muni`, sem codigos V… e sem pesos. Para 2022, use
+[`agregar_setores()`](https://distintivelab.github.io/censoagg/reference/agregar_setores.md)
+(agregados por setor, cobertos) ou importe o acesso controlado
+([`censobr::import_microdata22()`](https://ipea.github.io/censobr/reference/import_microdata22.html))
+e agregue com `funcao='soma_pond'` + `peso='PESO_PES'`. Microdados de
+2010 funcionam ponderados.
+
+## Documentacao
+
+Site: <https://distintivelab.github.io/censoagg/> (gerado por pkgdown,
+publicado na branch `gh-pages` pelo GitHub Actions a cada push em
+`main`).
+
+As páginas em `man/` são geradas por roxygen2 (`RoxygenNote: 7.3.2`,
+markdown ligado) e versionadas junto com o código:
+
+``` r
+
+devtools::document()   # NAMESPACE + man/
+devtools::test()       # testes offline (sem rede)
+?agregar_setores       # contrato, níveis, ponderação e exemplos
+pkgdown::build_site()  # site local em docs/ (não versionado)
+```
